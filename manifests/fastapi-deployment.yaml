@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myfastapi-deployment
+  labels:
+    app: myfastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myfastapi
+  template:
+    metadata:
+      labels:
+        app: myfastapi
+    spec:
+      containers:
+        - name: myfastapi
+          image: dbuckleysm/myfastapi:v2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_CONNECTION_URI
+              value: mongodb://admin:password@localhost:27017
+        - name: mydb
+          volumeMounts:
+            - mountPath: /tmp/data/db
+              name: mydb-data
+          image: bitnami/mongodb
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGODB_DATABASE
+              value: myfastapi
+            - name: MONGODB_ROOT_PASSWORD
+              value: password
+            - name: MONGODB_ROOT_USER
+              value: admin
+      volumes:
+        - name: mydb-data
+          persistentVolumeClaim:
+            claimName: mydb-pvc
+      restartPolicy: Always
